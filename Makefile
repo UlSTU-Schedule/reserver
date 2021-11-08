@@ -2,7 +2,7 @@
 .SILENT:
 
 build:
-	go build -o ./.bin/reserver main.go
+	go build -o ./.bin/reserver cmd/reserver/main.go
 
 run: build
 	./.bin/reserver
