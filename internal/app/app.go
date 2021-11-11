@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+	"github.com/ulstu-schedule/parser/schedule"
+	"log"
 	"time"
 )
 
@@ -14,6 +16,10 @@ func Run() {
 // worker ...
 func worker(ticker *time.Ticker) {
 	for range ticker.C {
-		fmt.Println(time.Now())
+		groupSchedule, err := schedule.GetTextDailyGroupSchedule("ПИбд-21", 0)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(groupSchedule)
 	}
 }
