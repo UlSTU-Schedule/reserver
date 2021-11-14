@@ -1,0 +1,3 @@
+log_level = "info"
+reservation_interval = 2
+database_url = ""
