@@ -5,10 +5,15 @@ import (
 	"time"
 )
 
-// Schedule ...
-type Schedule struct {
+// GroupSchedule ...
+type GroupSchedule struct {
 	ID         int
-	Name       string
-	UpdateTime time.Time
-	Info       types.JSONText
+	Name       string         `db:"group_name"`
+	UpdateTime time.Time      `db:"update_time"`
+	Info       types.JSONText `db:"info"`
+}
+
+// TeacherSchedule ...
+type TeacherSchedule struct {
+	// TODO: сделать по аналогии с GroupSchedule
 }

@@ -2,41 +2,51 @@ package reserver
 
 import (
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"github.com/ulstu-schedule/parser/schedule"
-	"github.com/ulstu-schedule/reserver/internal/app/repository"
+	"github.com/ulstu-schedule/parser/types"
+	"github.com/ulstu-schedule/reserver/internal/app/store/postgres"
 	"log"
 	"time"
 )
 
-// Reserver ...
-type Reserver struct {
-	config     *Config
-	logger     *logrus.Logger
-	repository *repository.Repository
-}
-
-// New ...
-func New(config *Config) *Reserver {
-	return &Reserver{
-		config: config,
-		logger: logrus.New(),
-	}
-}
-
 // Run runs worker.
-func (r *Reserver) Run() error {
-	if err := r.configureLogger(); err != nil {
+func Run(config *Config) error {
+	db, err := newDB(config.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	store := postgres.New(db)
+
+	logger := logrus.New()
+	level, err := logrus.ParseLevel(config.LogLevel)
+	if err != nil {
+		return err
+	}
+	logger.SetLevel(level)
+
+	logger.Infof("The program is running! Reservation every %d hours.", config.ReservationInterval)
+
+	// Пример обращения к БД (предварительно там лежит 1 запись)
+	groupSchedules, err := store.GroupSchedule().GetAllSchedules()
+	if err != nil {
 		return err
 	}
 
-	if err := r.configureRepository(); err != nil {
+	groupSchedule := &types.Schedule{}
+
+	err = easyjson.Unmarshal(groupSchedules[0].Info, groupSchedule)
+	if err != nil {
 		return err
 	}
 
-	r.logger.Infof("The program is running! Reservation every %d hours.", r.config.ReservationInterval)
+	fmt.Println(groupSchedule)
 
-	go worker(time.NewTicker(time.Duration(r.config.ReservationInterval) * time.Second))
+	go worker(time.NewTicker(time.Duration(config.ReservationInterval) * time.Second))
 	select {}
 }
 
@@ -51,24 +61,17 @@ func worker(ticker *time.Ticker) {
 	}
 }
 
-// configureLogger ...
-func (r *Reserver) configureLogger() error {
-	level, err := logrus.ParseLevel(r.config.LogLevel)
+// newDB ...
+func newDB(databaseURL string) (*sqlx.DB, error) {
+	db, err := sqlx.Open("pgx", databaseURL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	r.logger.SetLevel(level)
-	return nil
-}
-
-// configureRepository ...
-func (r *Reserver) configureRepository() error {
-	rep := repository.New(r.config.Repository)
-	if err := rep.Open(); err != nil {
-		return err
+	err = db.Ping()
+	if err != nil {
+		return nil, err
 	}
 
-	r.repository = rep
-	return nil
+	return db, nil
 }
