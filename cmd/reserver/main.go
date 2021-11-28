@@ -15,8 +15,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := reserver.New(config)
-	if err = r.Run(); err != nil {
+	if err = reserver.Run(config); err != nil {
 		log.Fatal(err)
 	}
 }
