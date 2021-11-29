@@ -1,3 +1,3 @@
 log_level = "info"
-reservation_interval = 2
+reservation_interval = 3
 database_url = ""
