@@ -4,10 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	reserverConfigFileName = "reserver"
-	envFileName            = "app"
-)
+const reserverConfigFileName = "reserver"
 
 // Config ...
 type Config struct {
@@ -45,15 +42,10 @@ func parseFromYml(configPath string, cfg *Config) error {
 }
 
 func parseFromEnv(cfg *Config) error {
-	viper.AddConfigPath(".")
-	viper.SetConfigName(envFileName)
-	viper.SetConfigType("env")
-
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err != nil {
+	if err := viper.BindEnv("DATABASE_URL"); err != nil {
 		return err
 	}
 
-	return viper.Unmarshal(&cfg)
+	cfg.DatabaseURL = viper.GetString("DATABASE_URL")
+	return nil
 }
