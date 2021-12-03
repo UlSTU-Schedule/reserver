@@ -11,4 +11,4 @@ build-image:
 	docker build -t tmrrwnxtsn/ulstu-schedule-reserver .
 
 start-container:
-	docker run --env-file .env --rm tmrrwnxtsn/ulstu-schedule-resever
+	docker run --env-file app.env --rm tmrrwnxtsn/ulstu-schedule-resever

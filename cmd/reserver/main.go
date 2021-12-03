@@ -1,21 +1,20 @@
 package main
 
 import (
-	"github.com/BurntSushi/toml"
+	"github.com/ulstu-schedule/reserver/internal/app/config"
 	"github.com/ulstu-schedule/reserver/internal/app/reserver"
 	"log"
 )
 
-const configPath = "configs/reserver.toml"
+const configsPath = "configs"
 
 func main() {
-	config := reserver.NewConfig()
-	_, err := toml.DecodeFile(configPath, config)
+	cfg, err := config.Init(configsPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err = reserver.Run(config); err != nil {
+	if err = reserver.Run(cfg); err != nil {
 		log.Fatal(err)
 	}
 }

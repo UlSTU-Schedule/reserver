@@ -6,12 +6,13 @@ import (
 	"github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"github.com/ulstu-schedule/parser/schedule"
+	"github.com/ulstu-schedule/reserver/internal/app/config"
 	"github.com/ulstu-schedule/reserver/internal/app/store/postgres"
 	"time"
 )
 
 // Run runs worker.
-func Run(config *Config) error {
+func Run(config *config.Config) error {
 	db, err := newDB(config.DatabaseURL)
 	if err != nil {
 		return err
@@ -47,17 +48,17 @@ func reserveGroupsSchedules(store *postgres.Store, logger *logrus.Logger) {
 	for _, group := range groups {
 		fullGroupSchedule, err := schedule.GetFullGroupSchedule(group)
 		if err != nil {
-			logger.Error(err)
+			logger.Errorf("%s %v", group, err)
 		}
 
 		bytes, err := easyjson.Marshal(fullGroupSchedule)
 		if err != nil {
-			logger.Error(err)
+			logger.Errorf("%s %v", group, err)
 		}
 
 		err = store.GroupSchedule().Information(group, time.Now(), bytes)
 		if err != nil {
-			logger.Error(err)
+			logger.Errorf("%s %v", group, err)
 		}
 
 		logger.Infof("%s OK", group)

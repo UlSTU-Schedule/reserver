@@ -19,7 +19,7 @@
 .idea
 
 # Environment variables
-.env
+*.env
 
 # Test files
 cmd/test
