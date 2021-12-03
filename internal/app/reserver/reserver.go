@@ -1,14 +1,12 @@
 package reserver
 
 import (
-	"fmt"
+	"github.com/go-co-op/gocron"
 	"github.com/jmoiron/sqlx"
 	"github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"github.com/ulstu-schedule/parser/schedule"
-	"github.com/ulstu-schedule/parser/types"
 	"github.com/ulstu-schedule/reserver/internal/app/store/postgres"
-	"log"
 	"time"
 )
 
@@ -31,34 +29,43 @@ func Run(config *Config) error {
 
 	logger.Infof("The program is running! Reservation every %d hours.", config.ReservationInterval)
 
-	// Пример обращения к БД (предварительно там лежит 1 запись)
-	groupSchedules, err := store.GroupSchedule().GetAllSchedules()
+	s := gocron.NewScheduler(time.UTC)
+	_, err = s.Every(config.ReservationInterval).Hours().Do(reserveGroupsSchedules, store, logger)
 	if err != nil {
 		return err
 	}
+	s.StartBlocking()
 
-	groupSchedule := &types.Schedule{}
-
-	err = easyjson.Unmarshal(groupSchedules[0].Info, groupSchedule)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(groupSchedule)
-
-	go worker(time.NewTicker(time.Duration(config.ReservationInterval) * time.Second))
-	select {}
+	return nil
 }
 
-// worker ...
-func worker(ticker *time.Ticker) {
-	for range ticker.C {
-		groupSchedule, err := schedule.GetTextDailyGroupSchedule("ПИбд-21", 0)
+// reserveGroupsSchedules loads schedules of all UlSTU groups into the database.
+func reserveGroupsSchedules(store *postgres.Store, logger *logrus.Logger) {
+	logger.Info("Reservation of group schedules is started.")
+
+	groups := schedule.GetGroups()
+	for _, group := range groups {
+		fullGroupSchedule, err := schedule.GetFullGroupSchedule(group)
 		if err != nil {
-			log.Fatal(err)
+			logger.Error(err)
 		}
-		fmt.Println(groupSchedule)
+
+		bytes, err := easyjson.Marshal(fullGroupSchedule)
+		if err != nil {
+			logger.Error(err)
+		}
+
+		err = store.GroupSchedule().Information(group, time.Now(), bytes)
+		if err != nil {
+			logger.Error(err)
+		}
+
+		logger.Infof("%s OK", group)
+
+		time.Sleep(time.Second) // DDOS-attack: off :D
 	}
+
+	logger.Info("Reservation of group schedules is completed.")
 }
 
 // newDB ...
