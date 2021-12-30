@@ -8,10 +8,19 @@ import (
 
 // GroupScheduleRepository ...
 type GroupScheduleRepository interface {
+	// GetAllSchedules ...
 	GetAllSchedules() ([]model.GroupSchedule, error)
+
+	// GetSchedule ...
 	GetSchedule(groupName string) (*model.GroupSchedule, error)
+
+	// AddSchedule ...
 	AddSchedule(groupName string, updateTime time.Time, info types.JSONText)
+
+	// UpdateSchedule ...
 	UpdateSchedule(groupName string, updateTime time.Time, info types.JSONText)
+
+	// Information ...
 	Information(groupName string, updateTime time.Time, info types.JSONText) error
 }
 
