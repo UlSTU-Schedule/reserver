@@ -2,25 +2,21 @@ package postgres
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/ulstu-schedule/reserver/internal/app/store"
 )
 
-// Store ...
-type Store struct {
+type ScheduleStore struct {
 	db              *sqlx.DB
 	groupSchedule   *GroupScheduleRepository
 	teacherSchedule *TeacherScheduleRepository
 }
 
-// New ...
-func New(db *sqlx.DB) *Store {
-	return &Store{
+func NewScheduleStore(db *sqlx.DB) *ScheduleStore {
+	return &ScheduleStore{
 		db: db,
 	}
 }
 
-// GroupSchedule ...
-func (s *Store) GroupSchedule() store.GroupScheduleRepository {
+func (s *ScheduleStore) GroupSchedule() *GroupScheduleRepository {
 	if s.groupSchedule != nil {
 		return s.groupSchedule
 	}
@@ -32,8 +28,7 @@ func (s *Store) GroupSchedule() store.GroupScheduleRepository {
 	return s.groupSchedule
 }
 
-// TeacherSchedule ...
-func (s Store) TeacherSchedule() store.TeacherScheduleRepository {
+func (s *ScheduleStore) TeacherSchedule() *TeacherScheduleRepository {
 	// TODO: сделать по примеру GroupSchedule()
-	return nil
+	panic("implement me!")
 }

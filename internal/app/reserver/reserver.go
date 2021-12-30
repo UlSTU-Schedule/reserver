@@ -13,13 +13,13 @@ import (
 
 // Run runs worker.
 func Run(config *config.Config) error {
-	db, err := newDB(config.DatabaseURL)
+	db, err := newPostgresDB(config.DatabaseURL)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	store := postgres.New(db)
+	store := postgres.NewScheduleStore(db)
 
 	logger := logrus.New()
 	level, err := logrus.ParseLevel(config.LogLevel)
@@ -41,7 +41,7 @@ func Run(config *config.Config) error {
 }
 
 // reserveGroupsSchedules loads schedules of all UlSTU groups into the database.
-func reserveGroupsSchedules(store *postgres.Store, logger *logrus.Logger) {
+func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger) {
 	logger.Info("Reservation of group schedules is started.")
 
 	groups := schedule.GetGroups()
@@ -69,8 +69,8 @@ func reserveGroupsSchedules(store *postgres.Store, logger *logrus.Logger) {
 	logger.Info("Reservation of group schedules is completed.")
 }
 
-// newDB ...
-func newDB(databaseURL string) (*sqlx.DB, error) {
+// newPostgresDB ...
+func newPostgresDB(databaseURL string) (*sqlx.DB, error) {
 	db, err := sqlx.Open("pgx", databaseURL)
 	if err != nil {
 		return nil, err
