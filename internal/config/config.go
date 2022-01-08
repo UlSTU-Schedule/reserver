@@ -6,20 +6,17 @@ import (
 
 const reserverConfigFileName = "reserver"
 
-// Config ...
 type Config struct {
+	DatabaseURL string
+
 	LogLevel            string `mapstructure:"log_level"`
 	ReservationInterval int    `mapstructure:"reservation_interval"` // in hours
-
-	// environment variables
-	DatabaseURL string `mapstructure:"DATABASE_URL"`
 }
 
-// Init ...
-func Init(configPath string) (*Config, error) {
+func New(configsPath string) (*Config, error) {
 	cfg := &Config{}
 
-	if err := parseFromYml(configPath, cfg); err != nil {
+	if err := parseFromYml(configsPath, cfg); err != nil {
 		return nil, err
 	}
 

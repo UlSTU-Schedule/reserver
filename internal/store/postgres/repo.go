@@ -5,14 +5,15 @@ import (
 	"fmt"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/ulstu-schedule/reserver/internal/app/model"
-	"github.com/ulstu-schedule/reserver/internal/app/store"
+	"github.com/ulstu-schedule/reserver/internal/model"
+	"github.com/ulstu-schedule/reserver/internal/store"
 	"time"
 )
 
 const groupScheduleRepoName = "groups_schedule"
 
 var _ store.GroupScheduleRepository = (*GroupScheduleRepository)(nil)
+var _ store.TeacherScheduleRepository = (*TeacherScheduleRepository)(nil)
 
 type GroupScheduleRepository struct {
 	store *ScheduleStore
@@ -20,7 +21,7 @@ type GroupScheduleRepository struct {
 
 func (r *GroupScheduleRepository) GetAllSchedules() ([]model.GroupSchedule, error) {
 	var students []model.GroupSchedule
-	query := fmt.Sprintf("SELECT * FROM %s ORDER BY id", groupScheduleRepoName)
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY group_name", groupScheduleRepoName)
 	err := r.store.db.Select(&students, query)
 	if err != nil {
 		return nil, err
@@ -67,8 +68,6 @@ func (r *GroupScheduleRepository) Information(groupName string, updateTime time.
 	}
 	return nil
 }
-
-var _ store.TeacherScheduleRepository = (*TeacherScheduleRepository)(nil)
 
 type TeacherScheduleRepository struct {
 	// TODO: сделать по примеру GroupScheduleRepository

@@ -4,6 +4,20 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func NewDB(databaseURL string) (*sqlx.DB, error) {
+	db, err := sqlx.Open("pgx", databaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 type ScheduleStore struct {
 	db              *sqlx.DB
 	groupSchedule   *GroupScheduleRepository
