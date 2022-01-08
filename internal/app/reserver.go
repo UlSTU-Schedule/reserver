@@ -1,43 +1,46 @@
-package reserver
+package app
 
 import (
 	"github.com/go-co-op/gocron"
-	"github.com/jmoiron/sqlx"
 	"github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"github.com/ulstu-schedule/parser/schedule"
-	"github.com/ulstu-schedule/reserver/internal/app/config"
-	"github.com/ulstu-schedule/reserver/internal/app/store/postgres"
+	"github.com/ulstu-schedule/reserver/internal/config"
+	"github.com/ulstu-schedule/reserver/internal/store/postgres"
+	"log"
 	"time"
 )
 
-// Run runs worker.
-func Run(config *config.Config) error {
-	db, err := newPostgresDB(config.DatabaseURL)
+// Run runs the reserver.
+func Run(configsPath string) {
+	cfg, err := config.New(configsPath)
 	if err != nil {
-		return err
+		log.Fatal(err)
+	}
+
+	db, err := postgres.NewDB(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 	defer db.Close()
 
 	store := postgres.NewScheduleStore(db)
 
 	logger := logrus.New()
-	level, err := logrus.ParseLevel(config.LogLevel)
+	level, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	logger.SetLevel(level)
 
-	logger.Infof("The program is running! Reservation every %d hours.", config.ReservationInterval)
+	logger.Infof("The reserver is running! Reservation every %d hours.", cfg.ReservationInterval)
 
 	s := gocron.NewScheduler(time.UTC)
-	_, err = s.Every(config.ReservationInterval).Hours().Do(reserveGroupsSchedules, store, logger)
+	_, err = s.Every(cfg.ReservationInterval).Hours().Do(reserveGroupsSchedules, store, logger)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	s.StartBlocking()
-
-	return nil
 }
 
 // reserveGroupsSchedules loads schedules of all UlSTU groups into the database.
@@ -67,19 +70,4 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 	}
 
 	logger.Info("Reservation of group schedules is completed.")
-}
-
-// newPostgresDB ...
-func newPostgresDB(databaseURL string) (*sqlx.DB, error) {
-	db, err := sqlx.Open("pgx", databaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }

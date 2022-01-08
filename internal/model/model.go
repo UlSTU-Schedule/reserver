@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// GroupSchedule ...
+// GroupSchedule represents an entry in the database table with backups of the group schedule.
 type GroupSchedule struct {
 	ID         int
 	Name       string         `db:"group_name"`
@@ -13,7 +13,7 @@ type GroupSchedule struct {
 	Info       types.JSONText `db:"info"`
 }
 
-// TeacherSchedule ...
+// TeacherSchedule represents an entry in the database table with backups of the teacher schedule.
 type TeacherSchedule struct {
 	// TODO: сделать по аналогии с GroupSchedule
 }
