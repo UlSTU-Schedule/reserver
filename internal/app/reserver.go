@@ -52,16 +52,19 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 		fullGroupSchedule, err := schedule.GetFullGroupSchedule(group)
 		if err != nil {
 			logger.Errorf("%s %v", group, err)
+			continue
 		}
 
 		bytes, err := easyjson.Marshal(fullGroupSchedule)
 		if err != nil {
 			logger.Errorf("%s %v", group, err)
+			continue
 		}
 
 		err = store.GroupSchedule().Information(group, time.Now(), bytes)
 		if err != nil {
 			logger.Errorf("%s %v", group, err)
+			continue
 		}
 
 		logger.Infof("%s OK", group)
