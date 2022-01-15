@@ -5,6 +5,7 @@ import (
 	"github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"github.com/ulstu-schedule/parser/schedule"
+	"github.com/ulstu-schedule/parser/types"
 	"github.com/ulstu-schedule/reserver/internal/config"
 	"github.com/ulstu-schedule/reserver/internal/store/postgres"
 	"log"
@@ -49,27 +50,59 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 
 	groups := schedule.GetGroups()
 	for _, group := range groups {
-		fullGroupSchedule, err := schedule.GetFullGroupSchedule(group)
+		fullScheduleNew, err := schedule.GetFullGroupSchedule(group)
 		if err != nil {
-			logger.Errorf("%s %v", group, err)
+			logger.Errorf("%s: %v", group, err)
 			continue
 		}
 
-		bytes, err := easyjson.Marshal(fullGroupSchedule)
+		fullScheduleOldDB, err := store.GroupSchedule().GetSchedule(group)
 		if err != nil {
-			logger.Errorf("%s %v", group, err)
+			logger.Errorf("%s: %v", group, err)
+			continue
+		}
+
+		fullScheduleOld := &types.Schedule{}
+		err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld)
+		if err != nil {
+			logger.Errorf("%s: %v", group, err)
+			continue
+		}
+
+		hasOldScheduleChanged := false
+
+		firstWeekScheduleNew := fullScheduleNew.Weeks[0]
+		if !schedule.IsWeekScheduleEmpty(firstWeekScheduleNew) {
+			fullScheduleOld.Weeks[0] = firstWeekScheduleNew
+			logger.Infof("%s: updated the first week schedule", group)
+			hasOldScheduleChanged = true
+		}
+
+		secondWeekScheduleNew := fullScheduleNew.Weeks[1]
+		if !schedule.IsWeekScheduleEmpty(secondWeekScheduleNew) {
+			fullScheduleOld.Weeks[1] = secondWeekScheduleNew
+			logger.Infof("%s: updated the second week schedule", group)
+			hasOldScheduleChanged = true
+		}
+
+		if !hasOldScheduleChanged {
+			logger.Infof("%s: schedule has not been updated", group)
+			continue
+		}
+
+		bytes, err := easyjson.Marshal(fullScheduleOld)
+		if err != nil {
+			logger.Errorf("%s: %v", group, err)
 			continue
 		}
 
 		err = store.GroupSchedule().Information(group, time.Now(), bytes)
 		if err != nil {
-			logger.Errorf("%s %v", group, err)
+			logger.Errorf("%s: %v", group, err)
 			continue
 		}
 
-		logger.Infof("%s OK", group)
-
-		time.Sleep(time.Second) // DDOS-attack: off :D
+		time.Sleep(time.Second * 3) // DDOS-attack: off :D
 	}
 
 	logger.Info("Reservation of group schedules is completed.")
