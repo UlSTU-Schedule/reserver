@@ -21,7 +21,7 @@ type GroupScheduleRepository struct {
 
 func (r *GroupScheduleRepository) GetAllSchedules() ([]model.GroupSchedule, error) {
 	var students []model.GroupSchedule
-	query := fmt.Sprintf("SELECT * FROM %s ORDER BY group_name", groupScheduleRepoName)
+	query := fmt.Sprintf("SELECT * FROM %s", groupScheduleRepoName)
 	err := r.store.db.Select(&students, query)
 	if err != nil {
 		return nil, err
