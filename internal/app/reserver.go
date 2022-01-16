@@ -63,10 +63,12 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 		}
 
 		fullScheduleOld := &types.Schedule{}
-		err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld)
-		if err != nil {
-			logger.Errorf("%s: %v", group, err)
-			continue
+		if fullScheduleOldDB != nil {
+			err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld)
+			if err != nil {
+				logger.Errorf("%s: %v", group, err)
+				continue
+			}
 		}
 
 		hasOldScheduleChanged := false
