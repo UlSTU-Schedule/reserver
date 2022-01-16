@@ -71,18 +71,12 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 
 		hasOldScheduleChanged := false
 
-		firstWeekScheduleNew := fullScheduleNew.Weeks[0]
-		if !schedule.IsWeekScheduleEmpty(firstWeekScheduleNew) {
-			fullScheduleOld.Weeks[0] = firstWeekScheduleNew
-			logger.Infof("%s: updated the first week schedule", group)
-			hasOldScheduleChanged = true
-		}
-
-		secondWeekScheduleNew := fullScheduleNew.Weeks[1]
-		if !schedule.IsWeekScheduleEmpty(secondWeekScheduleNew) {
-			fullScheduleOld.Weeks[1] = secondWeekScheduleNew
-			logger.Infof("%s: updated the second week schedule", group)
-			hasOldScheduleChanged = true
+		for idx, weekSchedule := range fullScheduleNew.Weeks {
+			if !schedule.IsWeekScheduleEmpty(weekSchedule) {
+				fullScheduleOld.Weeks[idx] = weekSchedule
+				logger.Infof("%s: updated %d week schedule", group, idx+1)
+				hasOldScheduleChanged = true
+			}
 		}
 
 		if !hasOldScheduleChanged {
