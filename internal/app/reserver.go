@@ -98,7 +98,7 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 			continue
 		}
 
-		time.Sleep(time.Second * 3) // DDOS-attack: off :D
+		time.Sleep(time.Second * 4) // DDOS-attack: off :D
 	}
 
 	logger.Info("Reservation of group schedules is completed.")
