@@ -75,13 +75,13 @@ type TeacherScheduleRepository struct {
 }
 
 func (r *TeacherScheduleRepository) GetAllSchedules()([]model.TeacherSchedule, error)  {
-	var students []model.TeacherSchedule
+	var teachers []model.TeacherSchedule
 	query := fmt.Sprintf("SELECT * FROM %s", teacherScheduleRepoName)
-	err := r.store.db.Select(&students, query)
+	err := r.store.db.Select(&teachers, query)
 	if err != nil {
 		return nil, err
 	}
-	return students, nil
+	return teachers, nil
 }
 
 func (r *TeacherScheduleRepository) GetSchedule(teacherName string) (*model.TeacherSchedule, error) {
@@ -92,7 +92,7 @@ func (r *TeacherScheduleRepository) GetSchedule(teacherName string) (*model.Teac
 		return nil, err
 	}
 
-	// if the group schedule is not in the database
+	// if the teacher schedule is not in the database
 	if schedule.Name == "" {
 		return nil, nil
 	}

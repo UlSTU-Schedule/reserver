@@ -9,8 +9,9 @@ const reserverConfigFileName = "reserver"
 type Config struct {
 	DatabaseURL string
 
-	LogLevel            string `mapstructure:"log_level"`
-	ReservationInterval int    `mapstructure:"reservation_interval"` // in hours
+	LogLevel                    string `mapstructure:"log_level"`
+	ReservationIntervalGroups   int    `mapstructure:"reservation_interval_groups"` // in hours
+	ReservationIntervalTeachers int    `mapstructure:"reservation_interval_teachers"`
 }
 
 func New(configsPath string) (*Config, error) {
