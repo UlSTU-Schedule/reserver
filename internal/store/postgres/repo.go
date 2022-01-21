@@ -10,18 +10,22 @@ import (
 	"time"
 )
 
-const groupScheduleRepoName = "groups_schedule"
-const teacherScheduleRepoName = "teachers_schedule"
+const (
+	groupScheduleRepoName   = "groups_schedule"
+	teacherScheduleRepoName = "teachers_schedule"
+)
 
-var _ store.GroupScheduleRepository = (*GroupScheduleRepository)(nil)
-var _ store.TeacherScheduleRepository = (*TeacherScheduleRepository)(nil)
+var (
+	_ store.GroupScheduleRepository   = (*GroupScheduleRepository)(nil)
+	_ store.TeacherScheduleRepository = (*TeacherScheduleRepository)(nil)
+)
 
 type GroupScheduleRepository struct {
 	store *ScheduleStore
 }
 
 func (r *GroupScheduleRepository) GetAllSchedules() ([]model.GroupSchedule, error) {
-	var students []model.GroupSchedule
+	students := []model.GroupSchedule{}
 	query := fmt.Sprintf("SELECT * FROM %s", groupScheduleRepoName)
 	err := r.store.db.Select(&students, query)
 	if err != nil {
@@ -31,7 +35,7 @@ func (r *GroupScheduleRepository) GetAllSchedules() ([]model.GroupSchedule, erro
 }
 
 func (r *GroupScheduleRepository) GetSchedule(groupName string) (*model.GroupSchedule, error) {
-	var schedule model.GroupSchedule
+	schedule := model.GroupSchedule{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE group_name=$1", groupScheduleRepoName)
 	err := r.store.db.Get(&schedule, query, groupName)
 	if err != nil && err != sql.ErrNoRows {
@@ -74,8 +78,8 @@ type TeacherScheduleRepository struct {
 	store *ScheduleStore
 }
 
-func (r *TeacherScheduleRepository) GetAllSchedules()([]model.TeacherSchedule, error)  {
-	var teachers []model.TeacherSchedule
+func (r *TeacherScheduleRepository) GetAllSchedules() ([]model.TeacherSchedule, error) {
+	teachers := []model.TeacherSchedule{}
 	query := fmt.Sprintf("SELECT * FROM %s", teacherScheduleRepoName)
 	err := r.store.db.Select(&teachers, query)
 	if err != nil {
@@ -85,7 +89,7 @@ func (r *TeacherScheduleRepository) GetAllSchedules()([]model.TeacherSchedule, e
 }
 
 func (r *TeacherScheduleRepository) GetSchedule(teacherName string) (*model.TeacherSchedule, error) {
-	var schedule model.TeacherSchedule
+	schedule := model.TeacherSchedule{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE teacher_name=$1", teacherScheduleRepoName)
 	err := r.store.db.Get(&schedule, query, teacherName)
 	if err != nil && err != sql.ErrNoRows {
@@ -96,6 +100,7 @@ func (r *TeacherScheduleRepository) GetSchedule(teacherName string) (*model.Teac
 	if schedule.Name == "" {
 		return nil, nil
 	}
+
 	return &schedule, nil
 }
 

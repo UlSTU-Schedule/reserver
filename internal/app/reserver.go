@@ -34,7 +34,8 @@ func Run(configsPath string) {
 	}
 	logger.SetLevel(level)
 
-	logger.Infof("The reserver is running! Reservation every %d hours.", cfg.ReservationIntervalGroups)
+	logger.Infof("The reserver is running! Groups reservation every %d hours and teachers reservation every %d hours.",
+		cfg.ReservationIntervalGroups, cfg.ReservationIntervalTeachers)
 
 	s := gocron.NewScheduler(time.UTC)
 	_, err = s.Every(cfg.ReservationIntervalGroups).Hours().Do(reserveGroupsSchedules, store, logger)
@@ -52,19 +53,19 @@ func Run(configsPath string) {
 
 // reserveGroupsSchedules loads schedules of all UlSTU groups into the database.
 func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger) {
-	logger.Info("Reservation of group schedules is started.")
+	logger.Info("[GROUPS] Reservation is started.")
 
 	groups := schedule.GetGroups()
 	for _, group := range groups {
 		fullScheduleNew, err := schedule.GetFullGroupSchedule(group)
 		if err != nil {
-			logger.Errorf("[GROUP] %s: %v", group, err)
+			logger.Errorf("[GROUPS] %s: %v", group, err)
 			continue
 		}
 
 		fullScheduleOldDB, err := store.GroupSchedule().GetSchedule(group)
 		if err != nil {
-			logger.Errorf("[GROUP] %s: %v", group, err)
+			logger.Errorf("[GROUPS] %s: %v", group, err)
 			continue
 		}
 
@@ -72,7 +73,7 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 		if fullScheduleOldDB != nil {
 			err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld)
 			if err != nil {
-				logger.Errorf("[GROUP] %s: %v", group, err)
+				logger.Errorf("[GROUPS] %s: %v", group, err)
 				continue
 			}
 		}
@@ -82,40 +83,38 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 		for idx, weekSchedule := range fullScheduleNew.Weeks {
 			if !schedule.IsWeekScheduleEmpty(weekSchedule) {
 				fullScheduleOld.Weeks[idx] = weekSchedule
-				logger.Infof("[GROUP] %s: updated %d week schedule", group, idx+1)
+				logger.Infof("[GROUPS] %s: updated %d week schedule", group, idx+1)
 				hasOldScheduleChanged = true
 			}
 		}
 
 		if !hasOldScheduleChanged {
-			logger.Infof("[GROUP] %s: schedule has not been updated", group)
+			logger.Infof("[GROUPS] %s: schedule has not been updated", group)
 			continue
 		}
 
 		bytes, err := easyjson.Marshal(fullScheduleOld)
 		if err != nil {
-			logger.Errorf("[GROUP] %s: %v", group, err)
+			logger.Errorf("[GROUPS] %s: %v", group, err)
 			continue
 		}
 
-		err = store.GroupSchedule().Information(group, time.Now(), bytes)
-		if err != nil {
-			logger.Errorf("[GROUP] %s: %v", group, err)
+		if err = store.GroupSchedule().Information(group, time.Now(), bytes); err != nil {
+			logger.Errorf("[GROUPS] %s: %v", group, err)
 			continue
 		}
 
 		time.Sleep(time.Second * 4) // DDOS-attack: off :D
 	}
 
-	logger.Info("Reservation of group schedules is completed.")
+	logger.Info("[GROUPS] Reservation is completed.")
 }
 
 // reserveTeachersSchedules loads schedules of all UlSTU teachers into the database.
 func reserveTeachersSchedules(store *postgres.ScheduleStore, logger *logrus.Logger) {
-	logger.Info("Reservation of teacher schedules is started.")
+	logger.Info("[TEACHERS] Reservation is started.")
 
 	teachers, err := schedule.GetTeachers()
-
 	if err != nil {
 		logger.Errorf("Error getting all teachers: %v", err)
 		return
@@ -123,23 +122,21 @@ func reserveTeachersSchedules(store *postgres.ScheduleStore, logger *logrus.Logg
 
 	for _, teacher := range teachers {
 		fullScheduleNew, err := schedule.GetFullTeacherSchedule(teacher)
-
 		if err != nil {
-			logger.Errorf("[TEACHER] %s: %v", teacher, err)
+			logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 			continue
 		}
 
 		fullScheduleOldDB, err := store.TeacherSchedule().GetSchedule(teacher)
 		if err != nil {
-			logger.Errorf("[TEACHER] %s: %v", teacher, err)
+			logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 			continue
 		}
 
 		fullScheduleOld := &types.Schedule{}
 		if fullScheduleOldDB != nil {
-			err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld)
-			if err != nil {
-				logger.Errorf("[TEACHER] %s: %v", teacher, err)
+			if err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld); err != nil {
+				logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 				continue
 			}
 		}
@@ -149,30 +146,29 @@ func reserveTeachersSchedules(store *postgres.ScheduleStore, logger *logrus.Logg
 		for idx, weekSchedule := range fullScheduleNew.Weeks {
 			if !schedule.IsWeekScheduleEmpty(weekSchedule) {
 				fullScheduleOld.Weeks[idx] = weekSchedule
-				logger.Infof("[TEACHER] %s: updated %d week schedule", teacher, idx+1)
+				logger.Infof("[TEACHERS] %s: updated %d week schedule", teacher, idx+1)
 				hasOldScheduleChanged = true
 			}
 		}
 
 		if !hasOldScheduleChanged {
-			logger.Infof("[TEACHER] %s: schedule has not been updated", teacher)
+			logger.Infof("[TEACHERS] %s: schedule has not been updated", teacher)
 			continue
 		}
 
 		bytes, err := easyjson.Marshal(fullScheduleOld)
 		if err != nil {
-			logger.Errorf("[TEACHER] %s: %v", teacher, err)
+			logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 			continue
 		}
 
-		err = store.TeacherSchedule().Information(teacher, time.Now(), bytes)
-		if err != nil {
-			logger.Errorf("[TEACHER] %s: %v", teacher, err)
+		if err = store.TeacherSchedule().Information(teacher, time.Now(), bytes); err != nil {
+			logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 			continue
 		}
 
 		time.Sleep(time.Second * 4)
 	}
 
-	logger.Info("Reservation of teacher schedules is completed.")
+	logger.Info("[TEACHERS] Reservation is completed.")
 }

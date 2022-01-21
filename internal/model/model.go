@@ -15,8 +15,8 @@ type GroupSchedule struct {
 
 // TeacherSchedule represents an entry in the database table with backups of the teacher schedule.
 type TeacherSchedule struct {
-	ID int
-	Name string `db:"teacher_name"`
-	UpdateTime time.Time `db:"update_time"`
-	Info types.JSONText `db:"info"`
+	ID         int
+	Name       string         `db:"teacher_name"`
+	UpdateTime time.Time      `db:"update_time"`
+	Info       types.JSONText `db:"info"`
 }

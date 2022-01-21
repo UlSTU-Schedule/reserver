@@ -4,14 +4,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-const reserverConfigFileName = "reserver"
+const configFileName = "reserver"
 
 type Config struct {
 	DatabaseURL string
 
 	LogLevel                    string `mapstructure:"log_level"`
-	ReservationIntervalGroups   int    `mapstructure:"reservation_interval_groups"` // in hours
-	ReservationIntervalTeachers int    `mapstructure:"reservation_interval_teachers"`
+	ReservationIntervalGroups   int    `mapstructure:"reservation_interval_groups"`   // in hours
+	ReservationIntervalTeachers int    `mapstructure:"reservation_interval_teachers"` // in hours
 }
 
 func New(configsPath string) (*Config, error) {
@@ -30,7 +30,7 @@ func New(configsPath string) (*Config, error) {
 
 func parseFromYml(configPath string, cfg *Config) error {
 	viper.AddConfigPath(configPath)
-	viper.SetConfigName(reserverConfigFileName)
+	viper.SetConfigName(configFileName)
 
 	if err := viper.ReadInConfig(); err != nil {
 		return err
