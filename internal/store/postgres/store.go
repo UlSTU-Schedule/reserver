@@ -43,6 +43,13 @@ func (s *ScheduleStore) GroupSchedule() *GroupScheduleRepository {
 }
 
 func (s *ScheduleStore) TeacherSchedule() *TeacherScheduleRepository {
-	// TODO: сделать по примеру GroupSchedule()
-	panic("implement me!")
+	if s.teacherSchedule != nil {
+		return s.teacherSchedule
+	}
+
+	s.teacherSchedule = &TeacherScheduleRepository{
+		store: s,
+	}
+
+	return s.teacherSchedule
 }
