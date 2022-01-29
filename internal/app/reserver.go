@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/go-co-op/gocron"
+	"github.com/jmoiron/sqlx"
 	"github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"github.com/ulstu-schedule/parser/schedule"
@@ -23,7 +24,12 @@ func Run(configsPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func(db *sqlx.DB) {
+		err = db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	store := postgres.NewScheduleStore(db)
 
@@ -48,7 +54,7 @@ func Run(configsPath string) {
 		log.Fatal(err)
 	}
 
-	s.StartAsync()
+	s.StartBlocking()
 }
 
 // reserveGroupsSchedules loads schedules of all UlSTU groups into the database.
@@ -69,26 +75,39 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 			continue
 		}
 
+		var firstWeekUpdateTimeNew, secondWeekUpdateTimeNew time.Time
 		fullScheduleOld := &types.Schedule{}
+
 		if fullScheduleOldDB != nil {
-			err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld)
+			err = easyjson.Unmarshal(fullScheduleOldDB.FullSchedule, fullScheduleOld)
 			if err != nil {
 				logger.Errorf("[GROUPS] %s: %v", group, err)
 				continue
 			}
+
+			firstWeekUpdateTimeNew = fullScheduleOldDB.FirstWeekUpdateTime
+			secondWeekUpdateTimeNew = fullScheduleOldDB.SecondWeekUpdateTime
 		}
 
-		hasOldScheduleChanged := false
+		hasOldFirstWeekScheduleChanged := false
+		if !schedule.IsWeekScheduleEmpty(fullScheduleNew.Weeks[0]) {
+			fullScheduleOld.Weeks[0] = fullScheduleNew.Weeks[0]
+			firstWeekUpdateTimeNew = time.Now()
 
-		for idx, weekSchedule := range fullScheduleNew.Weeks {
-			if !schedule.IsWeekScheduleEmpty(weekSchedule) {
-				fullScheduleOld.Weeks[idx] = weekSchedule
-				logger.Infof("[GROUPS] %s: updated %d week schedule", group, idx+1)
-				hasOldScheduleChanged = true
-			}
+			logger.Infof("[GROUPS] %s: updated 1 week schedule", group)
+			hasOldFirstWeekScheduleChanged = true
 		}
 
-		if !hasOldScheduleChanged {
+		hasOldSecondWeekScheduleChanged := false
+		if !schedule.IsWeekScheduleEmpty(fullScheduleNew.Weeks[1]) {
+			fullScheduleOld.Weeks[1] = fullScheduleNew.Weeks[1]
+			secondWeekUpdateTimeNew = time.Now()
+
+			logger.Infof("[GROUPS] %s: updated 2 week schedule", group)
+			hasOldSecondWeekScheduleChanged = true
+		}
+
+		if !hasOldFirstWeekScheduleChanged && !hasOldSecondWeekScheduleChanged {
 			logger.Infof("[GROUPS] %s: schedule has not been updated", group)
 			continue
 		}
@@ -99,7 +118,7 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 			continue
 		}
 
-		if err = store.GroupSchedule().Information(group, time.Now(), bytes); err != nil {
+		if err = store.GroupSchedule().Information(group, firstWeekUpdateTimeNew, secondWeekUpdateTimeNew, bytes); err != nil {
 			logger.Errorf("[GROUPS] %s: %v", group, err)
 			continue
 		}
@@ -116,7 +135,7 @@ func reserveTeachersSchedules(store *postgres.ScheduleStore, logger *logrus.Logg
 
 	teachers, err := schedule.GetTeachers()
 	if err != nil {
-		logger.Errorf("Error getting all teachers: %v", err)
+		logger.Errorf("[TEACHERS] error occured while parsing all teachers: %v", err)
 		return
 	}
 
@@ -133,25 +152,39 @@ func reserveTeachersSchedules(store *postgres.ScheduleStore, logger *logrus.Logg
 			continue
 		}
 
+		var firstWeekUpdateTimeNew, secondWeekUpdateTimeNew time.Time
 		fullScheduleOld := &types.Schedule{}
+
 		if fullScheduleOldDB != nil {
-			if err = easyjson.Unmarshal(fullScheduleOldDB.Info, fullScheduleOld); err != nil {
+			err = easyjson.Unmarshal(fullScheduleOldDB.FullSchedule, fullScheduleOld)
+			if err != nil {
 				logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 				continue
 			}
+
+			firstWeekUpdateTimeNew = fullScheduleOldDB.FirstWeekUpdateTime
+			secondWeekUpdateTimeNew = fullScheduleOldDB.SecondWeekUpdateTime
 		}
 
-		hasOldScheduleChanged := false
+		hasOldFirstWeekScheduleChanged := false
+		if !schedule.IsWeekScheduleEmpty(fullScheduleNew.Weeks[0]) {
+			fullScheduleOld.Weeks[0] = fullScheduleNew.Weeks[0]
+			firstWeekUpdateTimeNew = time.Now()
 
-		for idx, weekSchedule := range fullScheduleNew.Weeks {
-			if !schedule.IsWeekScheduleEmpty(weekSchedule) {
-				fullScheduleOld.Weeks[idx] = weekSchedule
-				logger.Infof("[TEACHERS] %s: updated %d week schedule", teacher, idx+1)
-				hasOldScheduleChanged = true
-			}
+			logger.Infof("[TEACHERS] %s: updated 1 week schedule", teacher)
+			hasOldFirstWeekScheduleChanged = true
 		}
 
-		if !hasOldScheduleChanged {
+		hasOldSecondWeekScheduleChanged := false
+		if !schedule.IsWeekScheduleEmpty(fullScheduleNew.Weeks[1]) {
+			fullScheduleOld.Weeks[1] = fullScheduleNew.Weeks[1]
+			secondWeekUpdateTimeNew = time.Now()
+
+			logger.Infof("[TEACHERS] %s: updated 2 week schedule", teacher)
+			hasOldSecondWeekScheduleChanged = true
+		}
+
+		if !hasOldFirstWeekScheduleChanged && !hasOldSecondWeekScheduleChanged {
 			logger.Infof("[TEACHERS] %s: schedule has not been updated", teacher)
 			continue
 		}
@@ -162,7 +195,7 @@ func reserveTeachersSchedules(store *postgres.ScheduleStore, logger *logrus.Logg
 			continue
 		}
 
-		if err = store.TeacherSchedule().Information(teacher, time.Now(), bytes); err != nil {
+		if err = store.TeacherSchedule().Information(teacher, firstWeekUpdateTimeNew, secondWeekUpdateTimeNew, bytes); err != nil {
 			logger.Errorf("[TEACHERS] %s: %v", teacher, err)
 			continue
 		}

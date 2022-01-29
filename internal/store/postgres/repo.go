@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	groupScheduleRepoName   = "groups_schedule"
-	teacherScheduleRepoName = "teachers_schedule"
+	groupScheduleRepoName   = "groups_schedules"
+	teacherScheduleRepoName = "teachers_schedules"
 )
 
 var (
@@ -50,26 +50,27 @@ func (r *GroupScheduleRepository) GetSchedule(groupName string) (*model.GroupSch
 	return &schedule, nil
 }
 
-func (r *GroupScheduleRepository) AddSchedule(groupName string, updateTime time.Time, info types.JSONText) {
-	query := fmt.Sprintf("INSERT INTO %s (group_name, update_time, info) VALUES ($1, $2, $3)", groupScheduleRepoName)
-	r.store.db.MustExec(query, groupName, updateTime, info)
+func (r *GroupScheduleRepository) AddSchedule(groupName string, fullSchedule types.JSONText) {
+	updateTime := time.Now()
+	query := fmt.Sprintf("INSERT INTO %s (group_name, first_week_update_time, second_week_update_time, full_schedule) VALUES ($1, $2, $2, $3)", groupScheduleRepoName)
+	r.store.db.MustExec(query, groupName, updateTime, fullSchedule)
 }
 
-func (r *GroupScheduleRepository) UpdateSchedule(groupName string, updateTime time.Time, info types.JSONText) {
-	query := fmt.Sprintf("UPDATE %s SET update_time=$2, info=$3 WHERE group_name=$1", groupScheduleRepoName)
-	r.store.db.MustExec(query, groupName, updateTime, info)
+func (r *GroupScheduleRepository) UpdateSchedule(groupName string, firstWeekUpdateTime, secondWeekUpdateTime time.Time, fullSchedule types.JSONText) {
+	query := fmt.Sprintf("UPDATE %s SET first_week_update_time=$2, second_week_update_time=$3, full_schedule=$4 WHERE group_name=$1", groupScheduleRepoName)
+	r.store.db.MustExec(query, groupName, firstWeekUpdateTime, secondWeekUpdateTime, fullSchedule)
 }
 
-func (r *GroupScheduleRepository) Information(groupName string, updateTime time.Time, info types.JSONText) error {
+func (r *GroupScheduleRepository) Information(groupName string, firstWeekUpdateTime, secondWeekUpdateTime time.Time, fullSchedule types.JSONText) error {
 	schedule, err := r.GetSchedule(groupName)
 	if err != nil {
 		return err
 	}
 
 	if schedule != nil {
-		r.UpdateSchedule(groupName, updateTime, info)
+		r.UpdateSchedule(groupName, firstWeekUpdateTime, secondWeekUpdateTime, fullSchedule)
 	} else {
-		r.AddSchedule(groupName, updateTime, info)
+		r.AddSchedule(groupName, fullSchedule)
 	}
 	return nil
 }
@@ -104,26 +105,27 @@ func (r *TeacherScheduleRepository) GetSchedule(teacherName string) (*model.Teac
 	return &schedule, nil
 }
 
-func (r *TeacherScheduleRepository) AddSchedule(teacherName string, updateTime time.Time, info types.JSONText) {
-	query := fmt.Sprintf("INSERT INTO %s (teacher_name, update_time, info) VALUES ($1, $2, $3)", teacherScheduleRepoName)
-	r.store.db.MustExec(query, teacherName, updateTime, info)
+func (r *TeacherScheduleRepository) AddSchedule(teacherName string, fullSchedule types.JSONText) {
+	updateTime := time.Now()
+	query := fmt.Sprintf("INSERT INTO %s (teacher_name, first_week_update_time, second_week_update_time, full_schedule) VALUES ($1, $2, $2, $3)", teacherScheduleRepoName)
+	r.store.db.MustExec(query, teacherName, updateTime, fullSchedule)
 }
 
-func (r *TeacherScheduleRepository) UpdateSchedule(teacherName string, updateTime time.Time, info types.JSONText) {
-	query := fmt.Sprintf("UPDATE %s SET update_time=$2, info=$3 WHERE teacher_name=$1", groupScheduleRepoName)
-	r.store.db.MustExec(query, teacherName, updateTime, info)
+func (r *TeacherScheduleRepository) UpdateSchedule(teacherName string, firstWeekUpdateTime, secondWeekUpdateTime time.Time, fullSchedule types.JSONText) {
+	query := fmt.Sprintf("UPDATE %s SET first_week_update_time=$2, second_week_update_time=$3, full_schedule=$4 WHERE teacher_name=$1", teacherScheduleRepoName)
+	r.store.db.MustExec(query, teacherName, firstWeekUpdateTime, secondWeekUpdateTime, fullSchedule)
 }
 
-func (r *TeacherScheduleRepository) Information(teacherName string, updateTime time.Time, info types.JSONText) error {
+func (r *TeacherScheduleRepository) Information(teacherName string, firstWeekUpdateTime, secondWeekUpdateTime time.Time, fullSchedule types.JSONText) error {
 	schedule, err := r.GetSchedule(teacherName)
 	if err != nil {
 		return err
 	}
 
 	if schedule != nil {
-		r.UpdateSchedule(teacherName, updateTime, info)
+		r.UpdateSchedule(teacherName, firstWeekUpdateTime, secondWeekUpdateTime, fullSchedule)
 	} else {
-		r.AddSchedule(teacherName, updateTime, info)
+		r.AddSchedule(teacherName, fullSchedule)
 	}
 	return nil
 }
