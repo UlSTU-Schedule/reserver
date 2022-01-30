@@ -354,8 +354,10 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
-github.com/ulstu-schedule/parser v0.9.8 h1:Ssanp+UGWlAOcBMHH2Ey1KgcegnE/uaUs+Z//1c6vzw=
-github.com/ulstu-schedule/parser v0.9.8/go.mod h1:hIqD7xLXduFqmZLmCI/tofgGtjcHEGRsN4qbbBXcbzk=
+github.com/ulstu-schedule/parser v0.9.9 h1:RcqjCBoe5oMaPlJA0A4E8e0gCDBYHYRYhQUzM5ZNBjk=
+github.com/ulstu-schedule/parser v0.9.9/go.mod h1:hIqD7xLXduFqmZLmCI/tofgGtjcHEGRsN4qbbBXcbzk=
+github.com/ulstu-schedule/parser v0.9.10 h1:Z6Gr6G1sK8k2eJ78SqwNHU6cykEz8wKk6HAAx/goFbo=
+github.com/ulstu-schedule/parser v0.9.10/go.mod h1:hIqD7xLXduFqmZLmCI/tofgGtjcHEGRsN4qbbBXcbzk=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

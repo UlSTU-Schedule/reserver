@@ -9,13 +9,13 @@ import (
 // ScheduleRepository represents a database tables with backups of group and teacher schedules.
 type ScheduleRepository interface {
 	// Information executes AddSchedule if there is no schedule in the table and executes UpdateSchedule if there is in the table.
-	Information(name string, updateTime time.Time, info types.JSONText) error
+	Information(entityName string, firstWeekUpdateTime, secondWeekUpdateTime time.Time, fullSchedule types.JSONText) error
 
 	// AddSchedule adds the schedule to the database table.
-	AddSchedule(name string, updateTime time.Time, info types.JSONText)
+	AddSchedule(entityName string, fullSchedule types.JSONText)
 
 	// UpdateSchedule updates information about the schedule.
-	UpdateSchedule(name string, updateTime time.Time, info types.JSONText)
+	UpdateSchedule(entityName string, firstWeekUpdateTime, secondWeekUpdateTime time.Time, fullSchedule types.JSONText)
 }
 
 // GroupScheduleRepository represents a database table with backups of group schedules.
