@@ -9,7 +9,7 @@ require (
 	github.com/mailru/easyjson v0.7.7
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.9.0
-	github.com/ulstu-schedule/parser v0.9.10
+	github.com/ulstu-schedule/parser v0.9.11
 )
 
 require (
