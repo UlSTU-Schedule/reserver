@@ -94,7 +94,7 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 			fullScheduleOld.Weeks[0] = fullScheduleNew.Weeks[0]
 			firstWeekUpdateTimeNew = time.Now()
 
-			logger.Infof("[GROUPS] %s: updated 1 week schedule", group)
+			logger.Infof("[GROUPS] %s: updated %d week schedule", group, fullScheduleOld.Weeks[0].Number)
 			hasOldFirstWeekScheduleChanged = true
 		}
 
@@ -103,7 +103,7 @@ func reserveGroupsSchedules(store *postgres.ScheduleStore, logger *logrus.Logger
 			fullScheduleOld.Weeks[1] = fullScheduleNew.Weeks[1]
 			secondWeekUpdateTimeNew = time.Now()
 
-			logger.Infof("[GROUPS] %s: updated 2 week schedule", group)
+			logger.Infof("[GROUPS] %s: updated %d week schedule", group, fullScheduleOld.Weeks[1].Number)
 			hasOldSecondWeekScheduleChanged = true
 		}
 
